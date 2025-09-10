@@ -231,6 +231,7 @@ export default function AuthPage() {
                           data-testid="input-register-password"
                           type="password"
                           placeholder="Create a password"
+                          autoComplete="new-password"
                           {...registerForm.register("password")}
                         />
                         {registerForm.formState.errors.password && (
@@ -245,6 +246,7 @@ export default function AuthPage() {
                           data-testid="input-register-confirm-password"
                           type="password"
                           placeholder="Confirm password"
+                          autoComplete="new-password"
                           {...registerForm.register("confirmPassword")}
                         />
                         {registerForm.formState.errors.confirmPassword && (
