@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertBookingSchema, type InsertBooking, type Room } from "@shared/schema";
+import { baseInsertBookingSchemaForFrontend, type InsertBooking, type Room } from "@shared/schema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -19,7 +19,22 @@ interface BookRoomModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const bookingFormSchema = insertBookingSchema.omit({ facultyId: true });
+const bookingFormSchema = baseInsertBookingSchemaForFrontend.omit({ facultyId: true }).refine(
+  (data) => {
+    if (data.startTime && data.endTime) {
+      const [startHour, startMin] = data.startTime.split(':').map(Number);
+      const [endHour, endMin] = data.endTime.split(':').map(Number);
+      const startMinutes = startHour * 60 + startMin;
+      const endMinutes = endHour * 60 + endMin;
+      return endMinutes > startMinutes;
+    }
+    return true;
+  },
+  {
+    message: "End time must be after start time",
+    path: ["endTime"],
+  }
+);
 
 export function BookRoomModal({ open, onOpenChange }: BookRoomModalProps) {
   const { user } = useAuth();

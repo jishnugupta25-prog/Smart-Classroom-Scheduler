@@ -8,14 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertBookingSchema, type InsertBooking, type Room } from "@shared/schema";
+import { baseInsertBookingSchemaForFrontend, type InsertBooking, type Room } from "@shared/schema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Redirect } from "wouter";
 import { Calendar, Clock, Users, AlertCircle } from "lucide-react";
 
-const bookingFormSchema = insertBookingSchema.omit({ facultyId: true }).refine(
+const bookingFormSchema = baseInsertBookingSchemaForFrontend.omit({ facultyId: true }).refine(
   (data) => {
     if (data.startTime && data.endTime) {
       const [startHour, startMin] = data.startTime.split(':').map(Number);

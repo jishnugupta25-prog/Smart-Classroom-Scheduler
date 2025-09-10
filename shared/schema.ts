@@ -44,10 +44,12 @@ export const insertRoomSchema = createInsertSchema(rooms).omit({
   createdAt: true,
 });
 
-export const insertBookingSchema = createInsertSchema(bookings).omit({
+const baseInsertBookingSchema = createInsertSchema(bookings).omit({
   id: true,
   createdAt: true,
-}).refine(
+});
+
+export const insertBookingSchema = baseInsertBookingSchema.refine(
   (data) => {
     if (data.startTime && data.endTime) {
       const [startHour, startMin] = data.startTime.split(':').map(Number);
@@ -63,6 +65,9 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
     path: ["endTime"],
   }
 );
+
+// Export base schema for frontend use (can use .omit())
+export const baseInsertBookingSchemaForFrontend = baseInsertBookingSchema;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
