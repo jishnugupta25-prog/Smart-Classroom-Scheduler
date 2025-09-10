@@ -64,6 +64,29 @@ export class MemStorage implements IStorage {
     });
   }
 
+  // Initialize admin user after authentication setup
+  async initializeAdmin() {
+    // Check if admin already exists
+    const existingAdmin = await this.getUserByUsername("admin");
+    if (existingAdmin) return;
+
+    // Import dynamically to avoid circular dependency
+    const { hashPassword } = await import("./auth");
+    
+    const adminId = randomUUID();
+    const hashedPassword = await hashPassword("admin123");
+    const adminUser: User = {
+      id: adminId,
+      username: "admin",
+      name: "System Administrator",
+      email: "admin@classroom.edu",
+      password: hashedPassword,
+      role: "admin",
+      createdAt: new Date(),
+    };
+    this.users.set(adminId, adminUser);
+  }
+
   async getUser(id: string): Promise<User | undefined> {
     return this.users.get(id);
   }
