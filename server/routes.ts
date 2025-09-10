@@ -231,6 +231,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin-only endpoint to approve a booking
+  app.put("/api/bookings/:id/approve", async (req, res) => {
+    if (!req.isAuthenticated() || req.user?.role !== "admin") {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    try {
+      const booking = await storage.getBooking(req.params.id);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+
+      if (booking.status !== "pending") {
+        return res.status(400).json({ message: "Only pending bookings can be approved" });
+      }
+
+      const updatedBooking = await storage.updateBooking(req.params.id, { status: "confirmed" });
+      res.json(updatedBooking);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to approve booking" });
+    }
+  });
+
+  // Admin-only endpoint to reject a booking
+  app.put("/api/bookings/:id/reject", async (req, res) => {
+    if (!req.isAuthenticated() || req.user?.role !== "admin") {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    try {
+      const booking = await storage.getBooking(req.params.id);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+
+      if (booking.status !== "pending") {
+        return res.status(400).json({ message: "Only pending bookings can be rejected" });
+      }
+
+      const updatedBooking = await storage.updateBooking(req.params.id, { status: "cancelled" });
+      res.json(updatedBooking);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to reject booking" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

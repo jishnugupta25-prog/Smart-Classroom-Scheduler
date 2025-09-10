@@ -51,6 +51,48 @@ export function BookingModal({ booking, open, onOpenChange }: BookingModalProps)
     },
   });
 
+  const approveBookingMutation = useMutation({
+    mutationFn: async (bookingId: string) => {
+      await apiRequest("PUT", `/api/bookings/${bookingId}/approve`, {});
+    },
+    onSuccess: () => {
+      toast({
+        title: "Booking Approved",
+        description: "The booking has been approved successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+      onOpenChange(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Approval Failed", 
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const rejectBookingMutation = useMutation({
+    mutationFn: async (bookingId: string) => {
+      await apiRequest("PUT", `/api/bookings/${bookingId}/reject`, {});
+    },
+    onSuccess: () => {
+      toast({
+        title: "Booking Rejected",
+        description: "The booking has been rejected successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+      onOpenChange(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Rejection Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   if (!booking) return null;
 
   const getStatusColor = (status: string) => {
@@ -106,6 +148,16 @@ export function BookingModal({ booking, open, onOpenChange }: BookingModalProps)
     if (user?.role === "faculty" && booking.facultyId === user.id) return true;
     
     return false;
+  };
+
+  const canApproveRejectBooking = () => {
+    // Only admins can approve/reject bookings
+    if (user?.role !== "admin") return false;
+    
+    // Only pending bookings can be approved/rejected
+    if (booking.status !== "pending") return false;
+    
+    return true;
   };
 
   return (
@@ -171,7 +223,77 @@ export function BookingModal({ booking, open, onOpenChange }: BookingModalProps)
           )}
         </div>
 
-        {canCancelBooking() && (
+        {/* Admin approve/reject buttons for pending bookings */}
+        {canApproveRejectBooking() && (
+          <div className="flex gap-3 mt-6">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="default" 
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                  data-testid="button-modal-approve-booking"
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Approve
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Approve Booking</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to approve this booking for "{booking.courseName}"? 
+                    This will confirm the room reservation.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => approveBookingMutation.mutate(booking.id)}
+                    className="bg-green-600 text-white hover:bg-green-700"
+                    data-testid="button-confirm-modal-approve"
+                  >
+                    Approve Booking
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="destructive" 
+                  className="flex-1"
+                  data-testid="button-modal-reject-booking"
+                >
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Reject
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Reject Booking</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to reject this booking for "{booking.courseName}"? 
+                    This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => rejectBookingMutation.mutate(booking.id)}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    data-testid="button-confirm-modal-reject"
+                  >
+                    Reject Booking
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        )}
+
+        {/* Cancel booking button for faculty/admin */}
+        {canCancelBooking() && !canApproveRejectBooking() && (
           <div className="flex gap-3 mt-6">
             <AlertDialog>
               <AlertDialogTrigger asChild>
