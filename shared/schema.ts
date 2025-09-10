@@ -47,7 +47,22 @@ export const insertRoomSchema = createInsertSchema(rooms).omit({
 export const insertBookingSchema = createInsertSchema(bookings).omit({
   id: true,
   createdAt: true,
-});
+}).refine(
+  (data) => {
+    if (data.startTime && data.endTime) {
+      const [startHour, startMin] = data.startTime.split(':').map(Number);
+      const [endHour, endMin] = data.endTime.split(':').map(Number);
+      const startMinutes = startHour * 60 + startMin;
+      const endMinutes = endHour * 60 + endMin;
+      return endMinutes > startMinutes;
+    }
+    return true;
+  },
+  {
+    message: "End time must be after start time",
+    path: ["endTime"],
+  }
+);
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;

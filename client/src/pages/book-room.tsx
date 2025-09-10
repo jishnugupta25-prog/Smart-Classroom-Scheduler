@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertBookingSchema, type InsertBooking, type Room } from "@shared/schema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -15,7 +15,22 @@ import { useToast } from "@/hooks/use-toast";
 import { Redirect } from "wouter";
 import { Calendar, Clock, Users, AlertCircle } from "lucide-react";
 
-const bookingFormSchema = insertBookingSchema.omit({ facultyId: true });
+const bookingFormSchema = insertBookingSchema.omit({ facultyId: true }).refine(
+  (data) => {
+    if (data.startTime && data.endTime) {
+      const [startHour, startMin] = data.startTime.split(':').map(Number);
+      const [endHour, endMin] = data.endTime.split(':').map(Number);
+      const startMinutes = startHour * 60 + startMin;
+      const endMinutes = endHour * 60 + endMin;
+      return endMinutes > startMinutes;
+    }
+    return true;
+  },
+  {
+    message: "End time must be after start time",
+    path: ["endTime"],
+  }
+);
 
 export default function BookRoom() {
   const { user } = useAuth();
@@ -120,18 +135,24 @@ export default function BookRoom() {
 
                     <div className="space-y-2">
                       <Label htmlFor="roomId">Room *</Label>
-                      <Select onValueChange={(value) => form.setValue("roomId", value)}>
-                        <SelectTrigger data-testid="select-room">
-                          <SelectValue placeholder="Select a room" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {rooms.map((room) => (
-                            <SelectItem key={room.id} value={room.id}>
-                              {room.name} (Capacity: {room.capacity})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Controller
+                        name="roomId"
+                        control={form.control}
+                        render={({ field }) => (
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger data-testid="select-room">
+                              <SelectValue placeholder="Select a room" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {rooms.map((room) => (
+                                <SelectItem key={room.id} value={room.id}>
+                                  {room.name} (Capacity: {room.capacity})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
                       {form.formState.errors.roomId && (
                         <p className="text-sm text-destructive">{form.formState.errors.roomId.message}</p>
                       )}
@@ -173,18 +194,24 @@ export default function BookRoom() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="startTime">Start Time *</Label>
-                      <Select onValueChange={(value) => form.setValue("startTime", value)}>
-                        <SelectTrigger data-testid="select-start-time">
-                          <SelectValue placeholder="Select start time" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {timeSlots.map((time) => (
-                            <SelectItem key={time} value={time}>
-                              {formatTimeSlot(time)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Controller
+                        name="startTime"
+                        control={form.control}
+                        render={({ field }) => (
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger data-testid="select-start-time">
+                              <SelectValue placeholder="Select start time" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {timeSlots.map((time) => (
+                                <SelectItem key={time} value={time}>
+                                  {formatTimeSlot(time)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
                       {form.formState.errors.startTime && (
                         <p className="text-sm text-destructive">{form.formState.errors.startTime.message}</p>
                       )}
@@ -192,18 +219,24 @@ export default function BookRoom() {
 
                     <div className="space-y-2">
                       <Label htmlFor="endTime">End Time *</Label>
-                      <Select onValueChange={(value) => form.setValue("endTime", value)}>
-                        <SelectTrigger data-testid="select-end-time">
-                          <SelectValue placeholder="Select end time" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {timeSlots.slice(1).map((time) => (
-                            <SelectItem key={time} value={time}>
-                              {formatTimeSlot(time)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Controller
+                        name="endTime"
+                        control={form.control}
+                        render={({ field }) => (
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger data-testid="select-end-time">
+                              <SelectValue placeholder="Select end time" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {timeSlots.slice(1).map((time) => (
+                                <SelectItem key={time} value={time}>
+                                  {formatTimeSlot(time)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
                       {form.formState.errors.endTime && (
                         <p className="text-sm text-destructive">{form.formState.errors.endTime.message}</p>
                       )}
