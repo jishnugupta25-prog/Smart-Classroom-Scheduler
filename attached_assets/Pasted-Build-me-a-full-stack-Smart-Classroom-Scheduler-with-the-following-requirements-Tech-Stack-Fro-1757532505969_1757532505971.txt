@@ -1,0 +1,115 @@
+Build me a full-stack Smart Classroom Scheduler with the following requirements:
+
+🔹 Tech Stack
+
+Frontend: React + TailwindCSS + FullCalendar (calendar view).
+
+Backend: Node.js + Express.js REST API.
+
+Database: SQLite (via Prisma ORM) or MongoDB Atlas if easier.
+
+Authentication: JWT authentication with roles (Faculty, Student, Admin).
+
+🔹 User Roles
+
+Faculty
+
+Register/Login with Faculty ID.
+
+Book classrooms (choose room, date, time).
+
+Cancel their own bookings.
+
+View full booking calendar.
+
+Students
+
+Register/Login with Student ID.
+
+View classroom calendar (readonly).
+
+Click on a booking to view details (faculty, room, status).
+
+Admin
+
+Create, edit, delete classrooms.
+
+View/manage all bookings.
+
+Cancel any booking.
+
+🔹 Calendar Feature
+
+Show all bookings inside a calendar view (monthly/weekly/daily).
+
+Color code events:
+
+✅ Confirmed = Green
+
+⏳ Pending = Yellow
+
+❌ Cancelled = Red
+
+Click on an event → open modal with booking details (room, faculty, date, time, status).
+
+Filtering:
+
+Filter by room.
+
+Filter by date range.
+
+Filter by booking status.
+
+🔹 API Endpoints (Express.js)
+
+Auth: /api/auth/register, /api/auth/login, /api/auth/logout
+
+Rooms: /api/rooms (CRUD for admin, GET for all)
+
+Bookings:
+
+POST /api/bookings (faculty)
+
+GET /api/bookings (all bookings, filter by query params)
+
+DELETE /api/bookings/:id (faculty can cancel own, admin can cancel any)
+
+🔹 Database Schema
+
+User: id, name, email, password (hashed), role (faculty/student/admin)
+
+Room: id, name, capacity
+
+Booking: id, roomId, facultyId, date, startTime, endTime, status (pending/confirmed/cancelled)
+
+🔹 Frontend Pages
+
+Login/Register
+
+Dashboard (sidebar navigation)
+
+Book Room (form)
+
+Calendar (with filters + click to view details)
+
+My Bookings (faculty only)
+
+Manage Rooms (admin only)
+
+Profile (update name/email/password)
+
+🔹 Deliverables
+
+Full React + Express.js project structure, with working JWT authentication.
+
+Calendar page with event colors, filters, and modal popups.
+
+REST API with CRUD endpoints.
+
+Prisma schema (or Mongo models).
+
+Seed data: some rooms + sample bookings.
+
+README.md with setup instructions for Replit.
+
+⚡ Final Deliverable: A Replit-deployable Smart Classroom Scheduler where faculty can login, book/cancel rooms, students can view schedules, admins can manage rooms/bookings, and all users can interact with a filterable booking calendar.
